@@ -4,6 +4,8 @@ location = 'C:\\Users\\CloudYirQ\\Desktop\\score.xlsx'
 sheet1 = pd.read_excel(location, 'Sheet1')
 sheet2 = pd.read_excel(location, 'Sheet2')
 
+is_merged = False  # 防止没用过1和2就用3
+is_jced = False  # 防止没用过6就用7
 while True:
     print('''
     1) 数据清洗，去掉工作表成绩单中含缺失值的行
@@ -21,15 +23,23 @@ while True:
         sheet1[sheet1.期末成绩.isnull()]
         sheet1 = sheet1.dropna()
         print(sheet1.shape)
+        input("Press Enter to continue")
     elif user_option == '2':
+        is_merged = True
         print(sheet2.shape, sheet2.columns)
         merge_score = pd.merge(sheet1, sheet2, left_on='学号', right_on='学号')
         print(merge_score.shape, merge_score.columns)
+        input("Press Enter to continue")
     elif user_option == '3':
-        print(merge_score.总评成绩.describe())
+        if is_merged:
+            print(merge_score.总评成绩.describe())
+            input("Press Enter to continue")
+        else:
+            input("Please run function 2 first.")
     elif user_option == '4':
         df1 = merge_score.groupby('班级')['总评成绩'].agg(['count', 'mean', 'std', 'max', 'min'])
         print(df1)
+        input("Press Enter to continue")
     elif user_option == '5':
         def get_min(x):
             newdata = x.sort_values(by='总评成绩')
@@ -38,7 +48,9 @@ while True:
 
         df2 = merge_score.groupby('班级').apply(get_min)
         print(df2)
+        input("Press Enter to continue")
     elif user_option == '6':
+        is_jced = True
         bins = [0, 60, 70, 80, 90, 101]
         label = ['不及格', '及格', '中等', '良好', '优秀']
         merge_score['成绩分布'] = pd.cut(merge_score['总评成绩'], bins, right=False, labels=label)
@@ -46,13 +58,20 @@ while True:
         jc_data = pd.pivot_table(fb_data, index='班级', columns='成绩分布', aggfunc='count')
         jc_data.fillna(0, inplace=True)
         print(jc_data)
+        input("Press Enter to continue")
     elif user_option == '7':
-        zb_data = jc_data.div(jc_data.sum(axis=1), axis=0)
-        f = lambda x: '%.2f%%' % (x * 100)
-        zb_data.applymap(f)
-        print(zb_data)
+        if is_jced:
+            zb_data = jc_data.div(jc_data.sum(axis=1), axis=0)
+            f = lambda x: '%.2f%%' % (x * 100)
+            zb_data.applymap(f)
+            print(zb_data)
+            input("Press Enter to continue")
+        else:
+            input("Please run function 6 first.")
     elif user_option == '8':
-        merge_score.loc[:, ['平时成绩', '期末成绩', '总评成绩']].corr()
-        print(merge_score)
-    else:
+        print(merge_score.loc[:, ['平时成绩', '期末成绩', '总评成绩']].corr())
+        input("Press Enter to continue")
+    elif user_option == '0':
         break
+    else:
+        input("Please input a correct number. Or input 0 to exit")
