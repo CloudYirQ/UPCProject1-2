@@ -5,6 +5,16 @@ sheet1 = pd.read_excel(location, 'Sheet1')
 sheet2 = pd.read_excel(location, 'Sheet2')
 
 while True:
+    print('''
+    1) 数据清洗，去掉工作表成绩单中含缺失值的行
+    2) 将工作表成绩单和工作表Sheet2按学号相等合并
+    3) 统计总成绩的基本统计信息
+    4) 统计各个班学生人数、平均成绩、最高分、最低分等
+    5) 抽取各班最低分学生的信息
+    6) 统计各个班不及格、及格、中等、良好和优秀人数
+    7) 在上题基础上分析各等级人数占本班人数的占比
+    8) 分析总成绩与平时成绩的相关性
+    ''')
     user_option = input("Please choose a function: ")
     if user_option == '1':
         print(sheet1.shape, sheet1.columns)
@@ -33,17 +43,15 @@ while True:
         label = ['不及格', '及格', '中等', '良好', '优秀']
         merge_score['成绩分布'] = pd.cut(merge_score['总评成绩'], bins, right=False, labels=label)
         fb_data = merge_score[['班级', '总评成绩', '成绩分布']]
-        print(fb_data)
-    elif user_option == '7':
         jc_data = pd.pivot_table(fb_data, index='班级', columns='成绩分布', aggfunc='count')
         jc_data.fillna(0, inplace=True)
         print(jc_data)
-    elif user_option == '8':
+    elif user_option == '7':
         zb_data = jc_data.div(jc_data.sum(axis=1), axis=0)
         f = lambda x: '%.2f%%' % (x * 100)
         zb_data.applymap(f)
         print(zb_data)
-    elif user_option == '9':
+    elif user_option == '8':
         merge_score.loc[:, ['平时成绩', '期末成绩', '总评成绩']].corr()
         print(merge_score)
     else:
